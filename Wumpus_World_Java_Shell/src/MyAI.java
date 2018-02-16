@@ -6,8 +6,10 @@ public class MyAI extends Agent {
 	}
 
 	public Action getAction(boolean stench, boolean breeze, boolean glitter, boolean bump, boolean scream) {
-		
-		return Action.CLIMB;
+		Action result = null;
+		if (Action.FORWARD!=null)
+		updateAgentCordinates(Action.FORWARD);
+		return result;
 
 	}
 
@@ -71,8 +73,8 @@ public class MyAI extends Agent {
 			else
 				newdirection = Direction.SOUTH;
 		}
-		agentCordinates.setDirection(newdirection);
-		setAgentCordinates(agentCordinates);
+		agentCordinates = new AgentCordinates (getAgentCordinates().getAgentXCordinate(),getAgentCordinates().getAgentYCordinate(),newdirection);
+		System.out.println(agentCordinates.toString());
 		
 	}
 	private void updateAgentCordinates() {
@@ -86,9 +88,9 @@ public class MyAI extends Agent {
 			xCordinate-=1;
 		else
 			yCordinate-=1;
-		agentCordinates.setAgentXCordinate(xCordinate);
-		agentCordinates.setAgentXCordinate(yCordinate);
-		setAgentCordinates(agentCordinates);
+		agentCordinates = new AgentCordinates (xCordinate,yCordinate,getAgentCordinates().getDirection());
+		System.out.println(agentCordinates.toString());
+
 	}
 		
 }

@@ -23,7 +23,7 @@
 abstract class Agent
 {
 	
-	// Actuatorsadssada
+	// Actuators
 	public enum Action
 	{
 		TURN_LEFT,
