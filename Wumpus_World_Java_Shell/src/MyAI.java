@@ -1,14 +1,47 @@
 
 public class MyAI extends Agent {
 	private AgentCordinates agentCordinates;
+	
 	public MyAI() {
 		setAgentCordinates(new AgentCordinates(0, 0, Direction.EAST));
+		setisGoldGrabbed(false);
 	}
 
 	public Action getAction(boolean stench, boolean breeze, boolean glitter, boolean bump, boolean scream) {
 		Action result = null;
-		if (Action.FORWARD!=null)
-		updateAgentCordinates(Action.FORWARD);
+		if (isGoldGrabbed()) {
+			
+		}
+		if (glitter) {
+			result = Action.GRAB;
+			setisGoldGrabbed(true);
+		}
+		else if (breeze || stench) {
+			// return to starting position
+			System.out.print("breeze");
+
+		}
+		else if (bump) {
+			if (getAgentCordinates().getAgentYCordinate() == 0 && getAgentCordinates().getAgentXCordinate() > 0) {
+				System.out.println("Inside breeze case");
+				result = Action.TURN_LEFT;
+			}
+			else if (getAgentCordinates().getAgentYCordinate() == getAgentCordinates().getAgentYCordinate() && getAgentCordinates().getAgentYCordinate() > 0) {
+				result = Action.TURN_RIGHT;
+			}
+			else if (getAgentCordinates().getAgentYCordinate() == getAgentCordinates().getAgentYCordinate() && getAgentCordinates().getAgentYCordinate() == 0) {
+				result = Action.TURN_LEFT;
+			}
+			else {
+				result = Action.TURN_LEFT;
+			}
+		}
+		else {
+			System.out.println("Moving forward");
+			result = Action.FORWARD;
+		}
+		if (result!=null)
+			updateAgentCordinates(result);
 		return result;
 
 	}
@@ -28,7 +61,6 @@ public class MyAI extends Agent {
 		switch(action) {
 
 		case FORWARD :
-			System.out.println("Moving forward");
 			updateAgentCordinates();
 			break;
 			
@@ -42,6 +74,7 @@ public class MyAI extends Agent {
 			updateAgentDirection(direction, action);
 			break;
 		default:
+			System.out.println("Default move");
 			break;
 				
 		}
@@ -92,5 +125,19 @@ public class MyAI extends Agent {
 		System.out.println(agentCordinates.toString());
 
 	}
+	
+	private boolean isgoldGrabbed;
+	private int leftTurnCounter;
+
+	public boolean isGoldGrabbed() {
+		return this.isgoldGrabbed;
+	}
+
+	public void setisGoldGrabbed(boolean goldGrabbed) {
+		this.isgoldGrabbed = goldGrabbed;
+	}
+	
+	
+	
 		
 }
