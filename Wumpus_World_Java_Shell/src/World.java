@@ -61,7 +61,7 @@ public class World
 	
 	public World ( ) throws Exception
 	{
-		this ( false, false, false, null );
+		this ( true, false, false, null );
 	}
 	
 	public World ( boolean _debug, boolean _randomAI, boolean _manualAI ) throws Exception
@@ -148,8 +148,7 @@ public class World
 					// Pause the game, only if manualAI isn't on
 					// because manualAI pauses for us
 					System.out.println("Press ENTER to continue...");
-					try
-					{
+					try{
 						System.in.read();
 					}
 					catch (IOException ioe)
@@ -171,7 +170,7 @@ public class World
 			--score;
 			bump   = false;
 			scream = false;
-			
+			lastAction = Agent.Action.FORWARD;
 			switch ( lastAction )
 			{
 				case TURN_LEFT:
