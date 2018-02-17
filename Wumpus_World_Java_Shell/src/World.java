@@ -170,7 +170,6 @@ public class World
 			--score;
 			bump   = false;
 			scream = false;
-			lastAction = Agent.Action.FORWARD;
 			switch ( lastAction )
 			{
 				case TURN_LEFT:

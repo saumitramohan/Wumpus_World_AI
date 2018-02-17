@@ -218,7 +218,10 @@ public class Main
 			double std_dev = Math.sqrt ( (sumOfScoresSquared - ((sumOfScores*sumOfScores) / (float)numOfScores) ) / (float)numOfScores );
 			if ( outputFile == "" )
 			{
-				System.out.println ( "The agent's average score: " + avg );
+				System.out.println ( "The agent's"
+						+ ""
+						+ ""
+						+ " average score: " + avg );
 				System.out.println ( "The agent's standard deviation: " + std_dev );
 			}
 			else
@@ -242,6 +245,7 @@ public class Main
 						if ( out != null )
 						{
 							out.close();
+							
 						}
 					}
 					catch ( IOException ioe )
