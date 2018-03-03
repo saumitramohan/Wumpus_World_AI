@@ -201,9 +201,11 @@ public class Main
 				{
 					World world = new World ( debug, randomAI, manualAI, listOfWorlds[worldIndex] );
 					score = world.run();
+					System.out.println(worldIndex+" : "+score);
 				}
 				catch ( Exception e )
 				{
+					e.printStackTrace();
 					numOfScores = 0;
 					sumOfScores = 0;
 					sumOfScoresSquared = 0;
@@ -218,10 +220,7 @@ public class Main
 			double std_dev = Math.sqrt ( (sumOfScoresSquared - ((sumOfScores*sumOfScores) / (float)numOfScores) ) / (float)numOfScores );
 			if ( outputFile == "" )
 			{
-				System.out.println ( "The agent's"
-						+ ""
-						+ ""
-						+ " average score: " + avg );
+				System.out.println ( "The agent's average score: " + avg );
 				System.out.println ( "The agent's standard deviation: " + std_dev );
 			}
 			else
@@ -245,7 +244,6 @@ public class Main
 						if ( out != null )
 						{
 							out.close();
-							
 						}
 					}
 					catch ( IOException ioe )

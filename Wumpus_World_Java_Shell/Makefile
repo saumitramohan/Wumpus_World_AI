@@ -20,7 +20,6 @@ RAW_SOURCES = \
 	RandomAI.java\
 	ManualAI.java\
 	World.java\
-	AgentCordinates.java
 
 SOURCE_DIR = src
 BIN_DIR = bin

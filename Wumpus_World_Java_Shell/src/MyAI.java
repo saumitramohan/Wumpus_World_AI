@@ -7,17 +7,17 @@ public class MyAI extends Agent {
 	private AgentState agentState;
 	private AgentWorldCordinates agentCordinatesArray[][];
 
-	Stack<AgentWorldCordinates> agentWorldStack = new Stack<>();
+	Stack<AgentWorldCordinates> agentWorldStack = new Stack<AgentWorldCordinates>();
 	static boolean turnFlag = false;
 	static boolean khatraFlag = false;
-	static int maximumRowCordinate = 10;
-	static int maximumColumnCordinate = 10;
+	static int maximumRowCordinate = 11;
+	static int maximumColumnCordinate = 11;
 	static boolean goldGrabFlag = false;
 
 	public MyAI() {
 
-		setAgentWorldCordinates(new AgentWorldCordinates(0, 0, false, false));
-		setAgentWorldCordinates(new AgentWorldCordinates(0, 0));
+//		setAgentWorldCordinates(new AgentWorldCordinates(false, false));
+		setAgentWorldCordinates(new AgentWorldCordinates(0,0));
 
 		setAgentState(new AgentState(0, 0, Direction.EAST));
 		agentCordinatesArray = new AgentWorldCordinates[10][10];
@@ -25,30 +25,21 @@ public class MyAI extends Agent {
 		for (int row = 0; row < 10; row++) {
 			for (int column = 0; column < 10; column++) {
 
-				agentCordinatesArray[row][column] = new AgentWorldCordinates(row, column, false, false);
+				agentCordinatesArray[row][column] = new AgentWorldCordinates(row, column);
 
 			}
 		}
-//		for (int row = 0; row < 10; row++) {
-//			for (int column = 0; column < 10; column++) {
-//
-//				to.println(agentCordinatesArray[row][column].toString());
-//
-//			}
-//		}
 	}
 
 	public Action getAction(boolean stench, boolean breeze, boolean glitter, boolean bump, boolean scream) {
 
 		Action result = null;
 
-		if ((stench || breeze)
-				&& (getAgentState().getrowCordinate() == 0 && getAgentState().getcolumnCordinate() == 0)) {
+		if ((stench || breeze) && (getAgentState().getrowCordinate() == 0 && getAgentState().getcolumnCordinate() == 0)) {
 			result = Action.CLIMB;
 			return result;
 		}
 
-		// Gold
 		if (glitter) {
 			goldGrabFlag = true;
 			result = Action.GRAB;
@@ -59,8 +50,8 @@ public class MyAI extends Agent {
 				result = Action.CLIMB;
 				return result;
 			}
-			khatraFlag = true;
-			agentWorldCordinates = agentWorldStack.peek();
+
+			AgentWorldCordinates agentWorldCordinates = agentWorldStack.peek();
 			result = getNextAction(agentWorldCordinates, getAgentState());
 
 			switch (result) {
@@ -92,7 +83,7 @@ public class MyAI extends Agent {
 					agentWorldCordinates.getworldColumnCordinate(), getAgentState().getDirection()));
 
 			if (getAgentState().getDirection() == Direction.EAST) {
-				maximumRowCordinate = getAgentState().getcolumnCordinate() + 1;
+				maximumColumnCordinate = getAgentState().getcolumnCordinate() + 1;
 			}
 			if (getAgentState().getDirection() == Direction.NORTH) {
 				maximumRowCordinate = getAgentState().getrowCordinate() + 1;
@@ -100,8 +91,6 @@ public class MyAI extends Agent {
 		}
 
 		if (!stench && !breeze) {
-
-			System.out.println("Inside !stench && !breeze");
 
 			int rowCordinate = getAgentState().getrowCordinate();
 			int columnCordinate = getAgentState().getcolumnCordinate();
@@ -111,7 +100,7 @@ public class MyAI extends Agent {
 			markSafeAndVisited(rowCordinate, columnCordinate);
 			neighboursAreSafe(rowCordinate, columnCordinate);
 
-			agentWorldCordinates = getNextUnVisitedState();
+			AgentWorldCordinates agentWorldCordinates = getNextUnVisitedState();
 
 			if (agentWorldCordinates == null) {
 
@@ -122,7 +111,7 @@ public class MyAI extends Agent {
 				agentWorldCordinates = agentWorldStack.peek();
 			}
 
-			result = getNextAction(getAgentWorldCordinates(), getAgentState());
+			result = getNextAction(agentWorldCordinates, getAgentState());
 
 			switch (result) {
 
@@ -130,9 +119,11 @@ public class MyAI extends Agent {
 				if (!khatraFlag) {
 					AgentWorldCordinates currentAgentCordinates = new AgentWorldCordinates(
 							getAgentState().getrowCordinate(), getAgentState().getcolumnCordinate());
+					
 					agentWorldStack.push(currentAgentCordinates);
-				} else {
-					agentWorldStack.pop();
+				}
+				else {
+						agentWorldStack.pop();
 				}
 				setAgentState(new AgentState(agentWorldCordinates.getworldRowCordinate(),
 						agentWorldCordinates.getworldColumnCordinate(), getAgentState().getDirection()));
@@ -154,17 +145,17 @@ public class MyAI extends Agent {
 
 		} else if (stench || breeze) {
 
-			System.out.println("Inside stench && breeze");
-
 			int rowCordinate = getAgentState().getrowCordinate();
 			int columnCordinate = getAgentState().getcolumnCordinate();
 
 			Direction direction = getAgentState().getDirection();
 
 			markSafeAndVisited(rowCordinate, columnCordinate);
-			agentWorldCordinates = getNextUnVisitedState();
+
+			AgentWorldCordinates agentWorldCordinates = getNextUnVisitedState();
 
 			if (agentWorldCordinates == null) {
+
 				khatraFlag = true;
 				if (agentWorldStack.isEmpty()) {
 					return Action.CLIMB;
@@ -172,7 +163,7 @@ public class MyAI extends Agent {
 				agentWorldCordinates = agentWorldStack.peek();
 			}
 
-			result = getNextAction(getAgentWorldCordinates(), getAgentState());
+			result = getNextAction(agentWorldCordinates, getAgentState());
 
 			switch (result) {
 
@@ -180,6 +171,7 @@ public class MyAI extends Agent {
 				if (!khatraFlag) {
 					AgentWorldCordinates currentAgentCordinates = new AgentWorldCordinates(
 							getAgentState().getrowCordinate(), getAgentState().getcolumnCordinate());
+					
 					agentWorldStack.push(currentAgentCordinates);
 				} else {
 					agentWorldStack.pop();
@@ -201,13 +193,11 @@ public class MyAI extends Agent {
 				break;
 
 			}
-			// System.out.println("Agent World
-			// Cordinates::"+agentWorldCordinates.toString());
-			// System.out.println("Agent cordinate::"+getAgentState().toString());
-
-		} else {
-			result = Action.CLIMB;
+		} 
+		if (agentWorldStack.isEmpty()) {
+			return Action.CLIMB;
 		}
+			result = Action.CLIMB;
 		
 
 		return result;
@@ -217,46 +207,38 @@ public class MyAI extends Agent {
 
 		int presentRowAxis = getAgentState().getrowCordinate();
 		int presentColumnAxis = getAgentState().getcolumnCordinate();
-
-		if (presentRowAxis - 1 >= 0) {
-			if ((!agentCordinatesArray[presentRowAxis - 1][presentColumnAxis].isVisited()
-					&& agentCordinatesArray[presentRowAxis - 1][presentColumnAxis].isSafeCell())) {
-				System.out.println("Inside case 1");
-				return agentCordinatesArray[presentRowAxis - 1][presentColumnAxis];
+		
+		if (presentColumnAxis + 1 < maximumColumnCordinate) {
+			if ((!agentCordinatesArray[presentRowAxis][presentColumnAxis + 1].isVisited()
+					&& agentCordinatesArray[presentRowAxis][presentColumnAxis + 1].isSafeCell())) {
+				return agentCordinatesArray[presentRowAxis][presentColumnAxis + 1];
 			}
-
 		}
+
+		
 		if ((presentRowAxis + 1) < maximumRowCordinate) {
-			int retRowVal = 0;
-			int retColVal = 0;
 
 			if ((!agentCordinatesArray[presentRowAxis + 1][presentColumnAxis].isVisited()
 					&& agentCordinatesArray[presentRowAxis + 1][presentColumnAxis].isSafeCell())) {
-				System.out.println("Inside case 2");
+				return agentCordinatesArray[presentRowAxis + 1][presentColumnAxis];
 
-				retRowVal = (presentRowAxis + 1);
-				retColVal = presentColumnAxis;
-				AgentWorldCordinates obj = agentCordinatesArray[retRowVal][retColVal];
-				return obj;
 			}
 		}
 		if (presentColumnAxis - 1 >= 0) {
 			if ((!agentCordinatesArray[presentRowAxis][presentColumnAxis - 1].isVisited()
 					&& agentCordinatesArray[presentRowAxis][presentColumnAxis - 1].isSafeCell())) {
-				System.out.println("Inside case 3");
-
 				return agentCordinatesArray[presentRowAxis][presentColumnAxis - 1];
 			}
 		}
-		if (presentColumnAxis + 1 < maximumColumnCordinate) {
-			if ((!agentCordinatesArray[presentRowAxis][presentColumnAxis + 1].isVisited()
-					&& agentCordinatesArray[presentRowAxis][presentColumnAxis + 1].isSafeCell())) {
-				System.out.println("Inside case 4");
-
-				return agentCordinatesArray[presentRowAxis][presentColumnAxis + 1];
+		
+		if (presentRowAxis - 1 >= 0) {
+			if ((!agentCordinatesArray[presentRowAxis - 1][presentColumnAxis].isVisited()
+					&& agentCordinatesArray[presentRowAxis - 1][presentColumnAxis].isSafeCell())) {
+				return agentCordinatesArray[presentRowAxis - 1][presentColumnAxis];
 			}
+
 		}
-		System.out.println("Returning null");
+		
 		return null;
 	}
 
@@ -318,14 +300,8 @@ public class MyAI extends Agent {
 		if (direction == agentState.getDirection()) {
 			result = Action.FORWARD;
 
-		} // else if (direction.ordinal() - agentState.getDirection().ordinal() == 1 &&
-			// !turnFlag) {
-			// khatraFlag = true;
-			// result = Action.TURN_RIGHT;
-			// } else {
-		else {
+		} else {
 			result = Action.TURN_LEFT;
-			turnFlag = true;
 		}
 
 		return result;
@@ -375,8 +351,9 @@ public class MyAI extends Agent {
 		private boolean isSafeCell;
 		private boolean isVisited;
 
-		public AgentWorldCordinates() {
-
+		public AgentWorldCordinates(boolean b, boolean c) {
+			this.isSafeCell = b;
+			this.isVisited = c;
 		}
 
 		public AgentWorldCordinates(int worldRowCordinate, int worldColumnCordinate, boolean isSafeCell,
@@ -416,11 +393,13 @@ public class MyAI extends Agent {
 			return this.worldColumnCordinate;
 		}
 
-//		@Override
-//		public String toString() {
-//			return String.format("Rowcordinate :: " + getworldRowCordinate() + "  ColumnCordiante ::"
-//					+ getworldColumnCordinate() + "Safe " + isSafeCell + "Visisted ::" + isVisited());
-//		}
+		// @Override
+		// public String toString() {
+		// return String.format("Rowcordinate :: " + getworldRowCordinate() + "
+		// ColumnCordiante ::"
+		// + getworldColumnCordinate() + "Safe " + isSafeCell + "Visisted ::" +
+		// isVisited());
+		// }
 
 	}
 
@@ -460,10 +439,11 @@ public class MyAI extends Agent {
 			this.columnCordinate = columnCordinate;
 		}
 
-//		@Override
-//		public String toString() {
-//			return String.format("Rowcordinate :: " + getrowCordinate() + "  ColumnCordiant ::" + getcolumnCordinate());
-//		}
+		// @Override
+		// public String toString() {
+		// return String.format("Rowcordinate :: " + getrowCordinate() + "
+		// ColumnCordiant ::" + getcolumnCordinate());
+		// }
 
 	}
 }
