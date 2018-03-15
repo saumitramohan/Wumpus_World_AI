@@ -31,7 +31,8 @@ class Cell {
 	int y;
 	private Boolean isVisited = Boolean.FALSE;
 	private Boolean isSafe = Boolean.FALSE;
-
+	private int riskFactor = 0;
+	
 	Cell(int x, int y) {
 		this.x = x;
 		this.y = y;
@@ -56,6 +57,17 @@ class Cell {
 	public void setSafeAndVisited() {
 		this.setIsSafe(Boolean.TRUE);
 		this.setIsVisited(Boolean.TRUE);
+	}
+	
+	public int getCellRiskFactor() {
+		return this.riskFactor;
+	}
+	public void incrementCellRiskFactor() {
+		this.riskFactor += 1;
+	}
+	
+	public void decrementCellRiskFactor() {
+		this.riskFactor -= 1;
 	}
 	
 	public String toString() {
@@ -127,6 +139,7 @@ public class MyAI extends Agent {
 	boolean isGoldGrabbed;
 	boolean isArrowShot;
 	boolean isScreamPerceived;
+	boolean isWumpusAlive;
 
 	private Grid grid;
 	private MyAgentImpl agent;
@@ -142,6 +155,7 @@ public class MyAI extends Agent {
 		isGoldGrabbed = false;
 		isArrowShot = false;
 		isScreamPerceived = false;
+		isWumpusAlive = true;
 		agentXLimit = 10;
 		agentYLimit = 10;
 	}
@@ -187,7 +201,14 @@ public class MyAI extends Agent {
 			isScreamPerceived = true;
 		}
 		if (isScreamPerceived) {
+			
 			stench = false;
+			isWumpusAlive = false;
+		}
+		
+		if (stench && !breeze && (agent.x == 0 && agent.y == 0) && !grid.get(0  , 0).getIsVisited()) {
+			grid.get(0  , 0).setSafeAndVisited();
+			return Action.SHOOT;
 		}
 		boolean safeCondition = (!stench && !breeze);
 		boolean unsafeCondition = (stench || breeze);
@@ -203,11 +224,31 @@ public class MyAI extends Agent {
 			if (isGoldGrabbed) {
 				return backtrack();
 			}
-
+			
+			for (int y = 0; y < 10; y++) {
+				for (int x = 0; x < 10; x++) {
+					Cell cell = new Cell(x, y);
+					if (grid.get(x  , y).getCellRiskFactor()!=0)
+					System.out.println("Risk Factor -  cell -  "+ x + " " + y + " --"+ grid.get(x  , y).getCellRiskFactor());
+				}
+			}
 			if (safeCondition || unsafeCondition) {
 				if (safeCondition) {
-					// mark neighnors as safe
-					markNeighborinfCellsSafeForTraversal(agent.x, agent.y);
+					Cell currentCell = grid.get(agent.x  , agent.y);
+						markNeighborinfCellsSafeForTraversal(agent.x, agent.y);
+						if(!currentCell.getIsVisited()) {
+							decrementNeighbouringRiskFactoroftheNeighbours(agent);
+					}					
+					
+				}
+				
+				if (unsafeCondition && stench && !breeze) {
+					Cell currentCell = grid.get(agent.x  , agent.y);
+					if(!currentCell.getIsVisited()) {
+						System.out.println("Inside cell +"+agent.x +" -- "+ agent.y);
+						incrementNeighbouringRiskFactoroftheNeighbours(agent);
+
+					}
 				}
 
 				this.grid.get(agent.x, agent.y).setSafeAndVisited();
@@ -221,15 +262,38 @@ public class MyAI extends Agent {
 					if (agentPath.isEmpty()) {
 						return Action.CLIMB;
 					}
-					System.out.println("Value of arrow shot :: "+isArrowShot);
-					 if (stench && !isArrowShot && !breeze) {
-						this.grid.get(agent.x, agent.y).setSafeAndVisited();
-						markForwardCellsSafeForTraversal(agent, agent.x,agent.y);
-						System.out.println("Arrow shot");
-						isArrowShot = true;
-						return Action.SHOOT;
+					
+					if (stench && isWumpusAlive && !isArrowShot && !breeze ) {
+						Cell cell = triangulateWumpus(agent);
+						if  (cell != null) {
+							System.out.println("**** Wumpus traingulated at :: *****"+ cell.x + "   " + cell.y);
+							
+							Action currAction = nextActionToKillWumpus(cell, agent);
+							System.out.println("Current Actions after finding Wumpus"+currAction );
+							if (currAction == Action.SHOOT) {
+								grid.get(cell.x, cell.y).setIsSafe(Boolean.TRUE);
+								isArrowShot = true;
+							}
+							else {
+								changeAgentDirection(agent, currAction);
+							}
+							return currAction;
+
+						}
 						
-					}
+					 }
+					
+					System.out.println("Value of arrow shot :: "+isArrowShot);
+
+//					 if (stench && !isArrowShot && !breeze) {
+//						this.grid.get(agent.x, agent.y).setSafeAndVisited();
+//						markForwardCellsSafeForTraversal(agent, agent.x,agent.y);
+//						System.out.println("Arrow shot");
+//						isArrowShot = true;
+//						return Action.SHOOT;
+//						
+//					}
+					 
 					Cell destinationCell = agentPath.peekLastVisitedCell();
 					Action currAction = nextAction(destinationCell, agent);
 
@@ -259,6 +323,137 @@ public class MyAI extends Agent {
 			return Action.CLIMB;
 		}
 	}
+	
+	private Cell triangulateWumpus(MyAgentImpl myAgent) {
+		
+		if (!falseTriangulation(myAgent)) {
+			if (myAgent.y + 1 < agentYLimit && myAgent.y  + 1 >= 0) {
+				if (grid.get(myAgent.x , myAgent.y + 1).getCellRiskFactor() >= 2) {
+					System.out.println("Trianglutaed at 1");
+					System.out.println("X , Y::"+myAgent.x + "  "  + myAgent.y + 1);
+					return new Cell(myAgent.x , myAgent.y + 1);
+
+		}
+				if ((myAgent.x - 1 < agentXLimit) && (myAgent.x - 1 >= 0))
+						if (grid.get(myAgent.x - 1  , myAgent.y).getCellRiskFactor() >= 2) {
+							System.out.println("Trainglutaed at 2");
+							return new Cell(myAgent.x -1  , myAgent.y);
+
+
+						
+		}
+		
+			if (myAgent.x + 1 < agentXLimit && myAgent.x + 1 >= 0)
+				if (grid.get(myAgent.x + 1  , myAgent.y).getCellRiskFactor() >= 2) {
+					System.out.println("Trainglutaed at 3");
+					return new Cell(myAgent.x + 1  , myAgent.y);
+
+
+		}
+			
+		}
+			if (myAgent.y - 1 < agentYLimit && myAgent.y - 1 >= 0)
+				if (grid.get(myAgent.x   , myAgent.y - 1).getCellRiskFactor() >= 2) {
+					System.out.println("Trainglutaed at 4");
+					return new Cell(myAgent.x   , myAgent.y - 1);
+
+		}
+		}
+			
+		return null;
+	}
+	
+	boolean falseTriangulation (MyAgentImpl myAgent) {
+		int count = 0;
+		if (myAgent.y + 1 < agentYLimit && myAgent.y + 1 >= 0) {
+
+			if (grid.get(myAgent.x, myAgent.y + 1).getCellRiskFactor() > 2) {
+				count++;
+			}
+		}
+		
+		if (myAgent.x + 1 < agentYLimit && myAgent.x + 1 >= 0) {
+
+			if (grid.get(myAgent.x + 1, myAgent.y).getCellRiskFactor() > 2) {
+				count++;
+			}
+		}
+		
+		if (myAgent.x - 1 < agentXLimit && myAgent.x - 1 >= 0) {
+
+			if (grid.get(myAgent.x - 1, myAgent.y).getCellRiskFactor() > 2) {
+				count++;
+			}
+		}
+		if (myAgent.y - 1 < agentYLimit && myAgent.y - 1 >= 0) {
+
+			if (grid.get(myAgent.x, myAgent.y - 1).getCellRiskFactor() > 2) {
+				count++;
+			}
+		}
+		if (count > 2) {
+			System.out.print("Count : returning true"+count);
+			return true;
+		}
+		return false;
+	}
+	
+	private void incrementNeighbouringRiskFactoroftheNeighbours(MyAgentImpl myAgent) {
+		
+		if (myAgent.x - 1 < agentXLimit && myAgent.x - 1 >= 0) {
+			if (grid.get(myAgent.x - 1, myAgent.y).getCellRiskFactor() > -1) {
+				grid.get(myAgent.x - 1, myAgent.y).incrementCellRiskFactor();
+			}
+		}
+		
+		if (myAgent.y + 1 < agentYLimit && myAgent.y + 1 >= 0) {
+			if (grid.get(myAgent.x , myAgent.y +1 ).getCellRiskFactor() > -1) {
+				grid.get(myAgent.x , myAgent.y + 1).incrementCellRiskFactor();
+			}
+		}
+		
+		if (myAgent.y - 1 < agentYLimit && myAgent.y - 1 >= 0) {
+			if (grid.get(myAgent.x , myAgent.y - 1 ).getCellRiskFactor() > -1) {
+				grid.get(myAgent.x , myAgent.y - 1).incrementCellRiskFactor();
+			}
+		}
+		
+		if (myAgent.x + 1 < agentYLimit && myAgent.x + 1 >= 0) {
+			if (grid.get(myAgent.x + 1, myAgent.y).getCellRiskFactor() > -1) {
+				grid.get(myAgent.x + 1 , myAgent.y).incrementCellRiskFactor();
+			}
+		}
+	}
+	
+	private void decrementNeighbouringRiskFactoroftheNeighbours(MyAgentImpl myAgent) {
+		
+		if (grid.get(myAgent.x, myAgent.y).getCellRiskFactor() > -1)
+			grid.get(myAgent.x, myAgent.y).decrementCellRiskFactor();
+		
+		if (myAgent.x - 1 < agentXLimit && myAgent.x - 1 >= 0) {
+			if (grid.get(myAgent.x - 1, myAgent.y).getCellRiskFactor() > -1) {
+				grid.get(myAgent.x - 1, myAgent.y).decrementCellRiskFactor();
+			}
+		}
+		
+		if (myAgent.y + 1 < agentYLimit && myAgent.y + 1 >= 0) {
+			if (grid.get(myAgent.x , myAgent.y +1 ).getCellRiskFactor() > -1) {
+				grid.get(myAgent.x , myAgent.y + 1).decrementCellRiskFactor();
+			}
+		}
+		
+		if (myAgent.y - 1 < agentYLimit && myAgent.y - 1 >= 0) {
+			if (grid.get(myAgent.x , myAgent.y - 1 ).getCellRiskFactor() > -1) {
+				grid.get(myAgent.x , myAgent.y - 1).decrementCellRiskFactor();
+			}
+		}
+		
+		if (myAgent.x + 1 < agentYLimit && myAgent.x + 1 >= 0) {
+			if (grid.get(myAgent.x + 1, myAgent.y).getCellRiskFactor() > -1) {
+				grid.get(myAgent.x + 1 , myAgent.y).decrementCellRiskFactor();
+			}
+		}
+	}
 
 	private void markNeighborinfCellsSafeForTraversal(int x, int y) {	
 		if (x - 1 < agentXLimit && x - 1 >= 0) {
@@ -266,12 +461,14 @@ public class MyAI extends Agent {
 		}
 		if (y + 1 < agentYLimit && y + 1 >= 0) {
 			grid.get(x, y + 1).setIsSafe(Boolean.TRUE);
+
 		}
 		if (y - 1 < agentYLimit && y - 1 >= 0) {
 			grid.get(x, y - 1).setIsSafe(Boolean.TRUE);
 		}
 		if (x + 1 < agentXLimit && x + 1 >= 0) {
 			grid.get(x + 1, y).setIsSafe(Boolean.TRUE);
+
 		}
 	}
 	
@@ -317,7 +514,7 @@ public class MyAI extends Agent {
 
 	}
 
-	private Action nextAction(Cell cell, MyAgentImpl myAgent) {
+	private Action nextAction(Cell cell, MyAgentImpl myAgent ) {
 		DirectionsEnum desiredDirection = null;
 
 		if (cell.y != myAgent.y) {
@@ -366,6 +563,59 @@ public class MyAI extends Agent {
 
 		return Action.TURN_RIGHT;
 	}
+	
+	private Action nextActionToKillWumpus(Cell cell, MyAgentImpl myAgent) {
+		DirectionsEnum desiredDirection = null;
+
+		if (cell.y != myAgent.y) {
+			if (cell.y > myAgent.y) {
+				desiredDirection = DirectionsEnum.NORTH;
+			} else {
+				desiredDirection = DirectionsEnum.SOUTH;
+			}
+		}
+		
+		if (cell.x != myAgent.x) {
+			if (cell.x > myAgent.x) {
+				desiredDirection = DirectionsEnum.EAST;
+			} else {
+				desiredDirection = DirectionsEnum.WEST;
+			}
+		}
+		
+		System.out.println("Desired direction"+ desiredDirection.value);
+		System.out.println("Agent direction"+  myAgent.currentDirection.value);
+
+		if (desiredDirection == myAgent.currentDirection) {
+			return Action.SHOOT;
+		}
+		
+		if (myAgent.currentDirection == DirectionsEnum.NORTH) {
+			if (desiredDirection == DirectionsEnum.WEST) {
+				return Action.TURN_LEFT;
+			}
+		}
+
+		if (myAgent.currentDirection == DirectionsEnum.EAST) {
+			if (desiredDirection == DirectionsEnum.NORTH) {
+				return Action.TURN_LEFT;
+			}
+		}
+		
+		if (myAgent.currentDirection == DirectionsEnum.SOUTH) {
+			if (desiredDirection == DirectionsEnum.EAST) {
+				return Action.TURN_LEFT;
+			}
+		}
+
+		if (myAgent.currentDirection == DirectionsEnum.WEST) {
+			if (desiredDirection == DirectionsEnum.SOUTH) {
+				return Action.TURN_LEFT;
+			}
+		}
+
+		return Action.TURN_RIGHT;
+	}
 
 	private Cell getNextUnvisitedSafeCell(int x, int y) {
 
@@ -380,7 +630,7 @@ public class MyAI extends Agent {
 	
 	if (x + 1 >= 0 && x + 1 < agentXLimit) {
 		if ((grid.get(x + 1, y).getIsSafe()) && (!grid.get(x + 1, y).getIsVisited())) {
-			//nextVertices.add(grid.get(x + 1, y));
+//			nextVertices.add(grid.get(x + 1, y));
 			Cell cell = new Cell(x + 1, y);
 			return cell;
 		}
@@ -388,7 +638,7 @@ public class MyAI extends Agent {
 
 	if (y - 1 >= 0 && y - 1 < agentYLimit) {
 		if ((grid.get(x, y - 1).getIsSafe()) && (!grid.get(x, y - 1).getIsVisited())) {
-			//nextVertices.add(grid.get(x, y - 1));
+//			nextVertices.add(grid.get(x, y - 1));
 			Cell cell = new Cell(x , y-1);
 			return cell;
 		}
