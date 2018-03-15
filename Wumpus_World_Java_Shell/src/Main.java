@@ -47,6 +47,7 @@ import java.io.IOException;
 
 public class Main
 {
+	static int deathCounter = 0;
     public static void main ( String[] args )
 	{
 		if ( args.length == 0 )
@@ -201,7 +202,9 @@ public class Main
 				{
 					World world = new World ( debug, randomAI, manualAI, listOfWorlds[worldIndex] );
 					score = world.run();
-					System.out.println(worldIndex+" : "+score);
+					if (score <= -1000) {
+						deathCounter++;
+					}
 				}
 				catch ( Exception e )
 				{
@@ -222,6 +225,7 @@ public class Main
 			{
 				System.out.println ( "The agent's average score: " + avg );
 				System.out.println ( "The agent's standard deviation: " + std_dev );
+				System.out.println ( "Death Counter: " + deathCounter );
 			}
 			else
 			{

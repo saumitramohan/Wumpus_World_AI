@@ -3,7 +3,7 @@ import java.util.Stack;
 import java.util.Random;
 import java.util.*;
 
-class DirectionsEnum{
+class DirectionsEnum {
 	
 	public String value;
 	public int id;
@@ -56,6 +56,11 @@ class Cell {
 	public void setSafeAndVisited() {
 		this.setIsSafe(Boolean.TRUE);
 		this.setIsVisited(Boolean.TRUE);
+	}
+	
+	public String toString() {
+		return  " X cordinate  " + this.x + "  Y cordinates  " + this.y;
+		
 	}
 }
 
@@ -120,6 +125,8 @@ public class MyAI extends Agent {
 	int agentXLimit;
 	int agentYLimit;
 	boolean isGoldGrabbed;
+	boolean isArrowShot;
+	boolean isScreamPerceived;
 
 	private Grid grid;
 	private MyAgentImpl agent;
@@ -133,6 +140,8 @@ public class MyAI extends Agent {
 		this.grid = new Grid();
 		agent = new MyAgentImpl();
 		isGoldGrabbed = false;
+		isArrowShot = false;
+		isScreamPerceived = false;
 		agentXLimit = 10;
 		agentYLimit = 10;
 	}
@@ -173,6 +182,13 @@ public class MyAI extends Agent {
 	}
 
 	public Action getAction(boolean stench, boolean breeze, boolean glitter, boolean bump, boolean scream) {
+
+		if(scream) {
+			isScreamPerceived = true;
+		}
+		if (isScreamPerceived) {
+			stench = false;
+		}
 		boolean safeCondition = (!stench && !breeze);
 		boolean unsafeCondition = (stench || breeze);
 
@@ -197,10 +213,22 @@ public class MyAI extends Agent {
 				this.grid.get(agent.x, agent.y).setSafeAndVisited();
 
 				Cell nextUnvisitedSafeCell = getNextUnvisitedSafeCell(agent.x, agent.y);
+				
+				if (nextUnvisitedSafeCell != null)
+					System.out.println("Get next univisited cell"+nextUnvisitedSafeCell.toString());
 
 				if (nextUnvisitedSafeCell == null) {
 					if (agentPath.isEmpty()) {
 						return Action.CLIMB;
+					}
+					System.out.println("Value of arrow shot :: "+isArrowShot);
+					 if (stench && !isArrowShot && !breeze) {
+						this.grid.get(agent.x, agent.y).setSafeAndVisited();
+						markForwardCellsSafeForTraversal(agent, agent.x,agent.y);
+						System.out.println("Arrow shot");
+						isArrowShot = true;
+						return Action.SHOOT;
+						
 					}
 					Cell destinationCell = agentPath.peekLastVisitedCell();
 					Action currAction = nextAction(destinationCell, agent);
@@ -245,6 +273,28 @@ public class MyAI extends Agent {
 		if (x + 1 < agentXLimit && x + 1 >= 0) {
 			grid.get(x + 1, y).setIsSafe(Boolean.TRUE);
 		}
+	}
+	
+	private void markForwardCellsSafeForTraversal(MyAgentImpl myAgent,int x, int y) {	
+		if (myAgent.currentDirection == DirectionsEnum.NORTH) {
+			if (y + 1 < agentYLimit && y + 1 >= 0) {
+				grid.get(x, y+1).setIsSafe(Boolean.TRUE);
+		}
+		if (myAgent.currentDirection == DirectionsEnum.EAST) {
+			if (x - 1 < agentXLimit && x - 1 >= 0)
+				grid.get(x-1, y).setIsSafe(Boolean.TRUE);
+		}
+		if (myAgent.currentDirection == DirectionsEnum.WEST) {
+			if (x + 1 < agentXLimit && x + 1 >= 0)
+				grid.get(x+1, y).setIsSafe(Boolean.TRUE);
+		}
+			
+		}
+		if (myAgent.currentDirection == DirectionsEnum.SOUTH) {
+			if (y - 1 < agentYLimit && y - 1 >= 0)
+				grid.get(x, y-1).setIsSafe(Boolean.TRUE);
+		}
+		
 	}
 
 	private void changeAgentDirection(MyAgentImpl myAgent, Action currAction) {
@@ -322,25 +372,33 @@ public class MyAI extends Agent {
 	List<Cell> nextVertices = new ArrayList<Cell>();
 	if (y + 1 >= 0 && y + 1 < agentYLimit) {
 		if ((grid.get(x, y + 1).getIsSafe()) && (!grid.get(x, y + 1).getIsVisited())) {
-			nextVertices.add(grid.get(x, y + 1));
+			//nextVertices.add(grid.get(x, y + 1));
+			Cell cell = new Cell(x, y + 1);
+			return cell;
 		}
 	}
 	
 	if (x + 1 >= 0 && x + 1 < agentXLimit) {
 		if ((grid.get(x + 1, y).getIsSafe()) && (!grid.get(x + 1, y).getIsVisited())) {
-			nextVertices.add(grid.get(x + 1, y));
+			//nextVertices.add(grid.get(x + 1, y));
+			Cell cell = new Cell(x + 1, y);
+			return cell;
 		}
 	}
 
 	if (y - 1 >= 0 && y - 1 < agentYLimit) {
 		if ((grid.get(x, y - 1).getIsSafe()) && (!grid.get(x, y - 1).getIsVisited())) {
-			nextVertices.add(grid.get(x, y - 1));
+			//nextVertices.add(grid.get(x, y - 1));
+			Cell cell = new Cell(x , y-1);
+			return cell;
 		}
 	}
 	
 	if (x - 1 >= 0 && x - 1 < agentXLimit) {
 		if ((grid.get(x - 1, y).getIsSafe()) && (!grid.get(x - 1, y).getIsVisited())) {
-			nextVertices.add(grid.get(x - 1, y));
+			//nextVertices.add(grid.get(x - 1, y));
+			Cell cell = new Cell(x -1 , y);
+			return cell;
 		}
 	}
 	if(nextVertices.size() == 0)
