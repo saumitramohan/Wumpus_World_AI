@@ -203,6 +203,9 @@ public class Main
 					World world = new World ( debug, randomAI, manualAI, listOfWorlds[worldIndex] );
 					score = world.run();
 					if (score <= -1000) {
+						if (score <= -100) {
+							System.out.println(listOfWorlds[worldIndex]);
+						}
 						deathCounter++;
 					}
 				}
