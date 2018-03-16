@@ -188,7 +188,7 @@ public class MyAI extends Agent {
 
 	public Action backtrack() {
 		// reached exit point
-
+		try {
 		if (agent.x == 0 && agent.y == 0) {
 			return Action.CLIMB;
 		}
@@ -224,10 +224,15 @@ public class MyAI extends Agent {
 			}
 			return currAction;
 		}
+		}
+		catch (Exception e) {
+			return Action.FORWARD;
+		}
 	}
 
 	public Action getAction(boolean stench, boolean breeze, boolean glitter, boolean bump, boolean scream) {
 
+		try {
 		if (scream) {
 			isScreamPerceived = true;
 		}
@@ -316,7 +321,8 @@ public class MyAI extends Agent {
 						}
 
 					}
-
+					
+					
 					Cell destinationCell = agentPath.peekLastVisitedCell();
 					Action currAction = nextAction(destinationCell, agent);
 
@@ -343,6 +349,11 @@ public class MyAI extends Agent {
 			}
 			return Action.CLIMB;
 		}
+		}
+		catch(Exception e) {
+			return backtrack();
+		}
+		
 	}
 
 	private Cell triangulateWumpus(MyAgentImpl myAgent) {
